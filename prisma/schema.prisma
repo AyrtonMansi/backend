@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Price {
+  id       Int     @id @default(autoincrement())
+  open     String
+  close    String
+  high     String
+  low      String
+  volume   String
+  stocksId Int?
+  Stocks   Stocks? @relation(fields: [stocksId], references: [id])
+}
+
+model Stocks {
+  id             Int     @id @default(autoincrement())
+  symbol         String
+  companyName    String
+  day_change     String
+  wk_change      String
+  market_cap     Int
+  day_vol        Int
+  supply         Int
+  previous_close String
+  day_range      String
+  revenue        Float
+  EPS            Float
+  yr_range       String
+  PE_ratio       Float
+  ave_volume     Float
+  dividend       String
+  prices         Price[]
+}
+
+enum graph_timeframe {
+  Day
+  Week
+  Month
+  Year
+  FiveYrs
+  MAX
+}
+
+enum technical_timeframe {
+  hourly
+  daily
+  weekly
+  monthly
+}
