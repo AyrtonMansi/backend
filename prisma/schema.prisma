@@ -22,19 +22,19 @@ model Stocks {
   id             Int     @id @default(autoincrement())
   symbol         String
   companyName    String
-  day_change     String
+  day_change     Float
   wk_change      String
   market_cap     Int
   day_vol        Int
   supply         Int
-  previous_close String
+  previous_close Float
   day_range      String
   revenue        Float
   EPS            Float
   yr_range       String
   PE_ratio       Float
   ave_volume     Float
-  dividend       String
+  dividend       Float
   prices         Price[]
 }
 
