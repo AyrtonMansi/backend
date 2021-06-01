@@ -60,8 +60,8 @@ input FilterStocks {
 }
 
 input Filter {
-  low: Int,
-  high: Int
+  low: Float,
+  high: Float
 }
 
 enum Sort {
