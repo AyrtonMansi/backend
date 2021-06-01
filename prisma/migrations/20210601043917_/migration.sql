@@ -22,19 +22,19 @@ CREATE TABLE "Stocks" (
     "id" SERIAL NOT NULL,
     "symbol" TEXT NOT NULL,
     "companyName" TEXT NOT NULL,
-    "day_change" TEXT NOT NULL,
+    "day_change" DOUBLE PRECISION NOT NULL,
     "wk_change" TEXT NOT NULL,
     "market_cap" INTEGER NOT NULL,
     "day_vol" INTEGER NOT NULL,
     "supply" INTEGER NOT NULL,
-    "previous_close" TEXT NOT NULL,
+    "previous_close" DOUBLE PRECISION NOT NULL,
     "day_range" TEXT NOT NULL,
     "revenue" DOUBLE PRECISION NOT NULL,
     "EPS" DOUBLE PRECISION NOT NULL,
     "yr_range" TEXT NOT NULL,
     "PE_ratio" DOUBLE PRECISION NOT NULL,
     "ave_volume" DOUBLE PRECISION NOT NULL,
-    "dividend" TEXT NOT NULL,
+    "dividend" DOUBLE PRECISION NOT NULL,
 
     PRIMARY KEY ("id")
 );
