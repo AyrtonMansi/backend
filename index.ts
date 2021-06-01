@@ -21,9 +21,9 @@ type Stocks {
   companyName:String
   day_change:Float
   wk_change:String
-  market_cap:Int
+  market_cap:Float
   day_vol:Int
-  supply:Int
+  supply:Float
   previous_close:Float
   day_range:String
   revenue:Float
