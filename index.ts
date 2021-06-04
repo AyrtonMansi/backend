@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // 1
 const typeDefs = `
 type Query {
-  stocks(filter: FilterStocks, skip: Int, take: Int,orderBy: StocksOrderBy): Stock!
+  stocks(filter: FilterStocks, search: String, skip: Int, take: Int,orderBy: StocksOrderBy): Stock!
   price: [Price!]!
   chart_timeframe: Chart_TimeFrame
   tech_timeframe: Tech_TimeFrame
@@ -104,7 +104,12 @@ const resolvers = {
           }
         }
       }
-      
+      if (args.search) {
+        where["OR"] = [
+          { companyName: { contains: args.search, mode: "insensitive" } },
+          { symbol: { contains: args.search, mode: "insensitive" } },
+        ];
+      }
       // const where = args.filter
       //   ? {
       //       OR: [
