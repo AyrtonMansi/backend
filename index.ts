@@ -1,7 +1,13 @@
-const { ApolloServer } = require("apollo-server");
+// const { ApolloServer } = require("apollo-server");
+const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const { GraphQLJSON } = require("graphql-type-json");
+const { ApolloServer } = require("apollo-server-express");
+const compression = require('compression')
 const prisma = new PrismaClient();
+
+const app = express();
+app.use(compression())
 // 1
 const typeDefs = `
 scalar JSON
@@ -132,20 +138,20 @@ const resolvers = {
         take: args.take,
         orderBy: args.orderBy,
         include: { prices: true },
-      })
+      });
 
-      stocksResult.forEach((element: { prices: CustomObject; }) => {
-        const priceJson: CustomObject = {}
+      stocksResult.forEach((element: { prices: CustomObject }) => {
+        const priceJson: CustomObject = {};
         element.prices.forEach((priceElem: any) => {
           priceJson[priceElem.prices[0].dateTime] = {
-            low:priceElem.prices[0].low,
-            high:priceElem.prices[0].high,
-            open:priceElem.prices[0].open,
-            close:priceElem.prices[0].close,
-            volume:priceElem.prices[0].volume,
-          }
+            low: priceElem.prices[0].low,
+            high: priceElem.prices[0].high,
+            open: priceElem.prices[0].open,
+            close: priceElem.prices[0].close,
+            volume: priceElem.prices[0].volume,
+          };
         });
-        element.prices = priceJson
+        element.prices = priceJson;
       });
 
       return {
@@ -161,22 +167,35 @@ const resolvers = {
   },
 };
 
+const startApolloServer = async () => {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: {
+      prisma,
+    },
+    introspection: true,
+    playground: true,
+  });
+  
+  server.applyMiddleware({ app });
+  
+  app.use((_req: any, res: any) => {
+    res.status(200);
+    res.send('Hello!');
+    res.end();
+  });
+  await new Promise(resolve => app.listen({ port: 3000 }, resolve));
+  console.log(`🚀 Server ready at http://localhost:3000${server.graphqlPath}`);
+  return { server, app };
+}
 // 3
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context: {
-    prisma,
-  },
-  introspection: true,
-  playground: true,
-});
-
-server
-  .listen(process.env.PORT)
-  .then(({ url }: { url: string }) =>
-    console.log(`Server is running on ${url}`)
-  );
+startApolloServer()
+// server
+//   .listen(process.env.PORT)
+//   .then(({ url }: { url: string }) =>
+//     console.log(`Server is running on ${url}`)
+//   );
 
 // import { PrismaClient } from '@prisma/client'
 
@@ -2107,7 +2126,7 @@ server
 //         low,
 //         volume,
 //       };
-      
+
 //       json.prices.push(priceSubJson);
 //       priceArray.push(json);
 //     }
