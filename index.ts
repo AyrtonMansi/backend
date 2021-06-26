@@ -177,6 +177,7 @@ const startApolloServer = async () => {
     introspection: true,
     playground: true,
   });
+  await server.start();
   
   server.applyMiddleware({ app });
   
