@@ -8,15 +8,15 @@ datasource db {
 }
 
 model Price {
-  id       Int      @id @default(autoincrement())
+  id       Int       @id @default(autoincrement())
   date     DateTime?
-  prices    Json[]
+  prices   Json
   stocksId Int?
-  Stocks   Stocks?  @relation(fields: [stocksId], references: [id])
+  Stocks   Stocks?   @relation(fields: [stocksId], references: [id])
 }
 
 model Stocks {
-  id             Int     @id @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   symbol         String
   companyName    String
   day_change     Float
@@ -33,6 +33,23 @@ model Stocks {
   ave_volume     Float
   dividend       Float
   prices         Price[]
+  stockInfo      StockInfo?
+}
+
+model StockInfo {
+  id             Int     @id @default(autoincrement())
+  Stocks         Stocks? @relation(fields: [stocksId], references: [id])
+  stocksId       Int?
+  previous_close Float
+  open           Float
+  volume         Float
+  ave_volume     Float
+  day_min        Float
+  day_max        Float
+  yearly_min     Float
+  yearly_max     Float
+
+  @@unique([stocksId])
 }
 
 enum graph_timeframe {

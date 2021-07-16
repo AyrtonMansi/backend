@@ -3,17 +3,18 @@ const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const { GraphQLJSON } = require("graphql-type-json");
 const { ApolloServer } = require("apollo-server-express");
-const compression = require('compression')
+const compression = require("compression");
 const prisma = new PrismaClient();
 
 const app = express();
-app.use(compression())
+app.use(compression());
 // 1
 const typeDefs = `
 scalar JSON
 
 type Query {
   stocks(filter: FilterStocks, search: String, skip: Int, take: Int,orderBy: StocksOrderBy): Stock!
+  stockInfoQuery(symbol: String, stockId: Int):Stocks!
   price: [Price!]!
   chart_timeframe: Chart_TimeFrame
   tech_timeframe: Tech_TimeFrame
@@ -22,6 +23,19 @@ type Query {
 type Stock {
   stocks: [Stocks!]!
   count: Int!
+}
+
+type StockInfo {
+  id: Int
+  stocksId: Int
+  previous_close:Float
+  open:Float
+  volume:Float
+  ave_volume:Float
+  day_min:Float
+  day_max:Float
+  yearly_min:Float
+  yearly_max:Float
 }
 
 type Stocks {
@@ -42,6 +56,7 @@ type Stocks {
   ave_volume:Float
   dividend:Float
   prices:JSON
+  stockInfo: StockInfo
 }
 
 type Price {
@@ -164,6 +179,24 @@ const resolvers = {
 
     //   return context.prisma.price.findMany({where: {stocksId: parent.id}})
     // }
+    stockInfoQuery: async (parent: any, args: any, context: any) => {
+      const symbol = args.symbol;
+      const stockId = args.stockId;
+      const where: CustomObject = {};
+      if (symbol) {
+        where["symbol"] = symbol;
+      }
+      if (stockId) {
+        where["id"] = stockId;
+      }
+      return await context.prisma.stocks.findFirst({
+        where,
+        include: {
+          prices: true,
+          stockInfo: true,
+        },
+      });
+    },
   },
 };
 
@@ -178,20 +211,22 @@ const startApolloServer = async () => {
     playground: true,
   });
   await server.start();
-  
+
   server.applyMiddleware({ app });
-  
+
   app.use((_req: any, res: any) => {
     res.status(200);
-    res.send('Hello!');
+    res.send("Hello!");
     res.end();
   });
-  await new Promise(resolve => app.listen({ port: process.env.PORT }, resolve));
+  await new Promise((resolve) =>
+    app.listen({ port: process.env.PORT }, resolve)
+  );
   console.log(`🚀 Server ready at ${process.env.PORT}`);
   return { server, app };
-}
+};
 // 3
-startApolloServer()
+startApolloServer();
 // server
 //   .listen(process.env.PORT)
 //   .then(({ url }: { url: string }) =>
@@ -2067,35 +2102,84 @@ startApolloServer()
 //     //     })
 //     //   })
 //     // )
-//     data.forEach(async (item) => {
+//     for (const item of data) {
+
 //       // item.prices = {
 //       //   create: price_list
 //       // };
 //       console.log("--------------------");
 
 //       const res = await prisma.stocks.create({
-//           data: item
+//         data: item
 //       })
 //       const price_list = await generateData(res.id);
 
 //       // price_list?.forEach(async (price) => {
-//       await prisma.price.createMany({
-//         data: price_list
-//       })
+//         await prisma.price.createMany({
+//           data: price_list
+//         })
 
 //       // })
-//       // console.log("res======> ",res);
-//     });
+//     }
+
+//     // console.log("res======> ",res);
 //     console.log("here");
 
-//     // const allStocks = await prisma.stocks.findMany({
-//     //   include: { prices: true },
-//     // });
-//     // console.log(allStocks);
+//     const allStocks = await prisma.stocks.findMany({
+//       include: { prices: { orderBy: { date: 'desc' } } },
+//       // take: 5
+//     });
+//     console.log("allStocks %j", allStocks);
+//     // allStocks.map(async (stockData) => {
+//     for (const stockData of allStocks) {
+
+//       const [ave_volume, yearly_min, yearly_max] = await getStockPageData(stockData.prices)
+//       const stocksJson = {
+//         stocksId: stockData.id,
+//         previous_close: Number(stockData.prices[1].prices[0].close),
+//         open: Number(stockData.prices[0].prices[0].open),
+//         volume: Number(stockData.prices[0].prices[0].volume),
+//         ave_volume: ave_volume,
+//         day_min: Number(stockData.prices[0].prices[0].low),
+//         day_max: Number(stockData.prices[0].prices[0].high),
+//         yearly_min: yearly_min,
+//         yearly_max: yearly_max,
+//       }
+//       // const findStockInfo = await prisma.stockInfo.findMany({where: {stocksId: stockData.id}})
+//       await prisma.stockInfo.upsert({
+//         where: {
+//           stocksId: stockData.id
+//         },
+//         update: stocksJson,
+//         create: stocksJson
+//       })
+//     }
+
+//     // // })
+//     //  console.log(allStocks);
 //   } catch (error) {
 //     console.log("error ------->", error);
 //   }
 // };
+
+// const getStockPageData = async (prices: string | any[]) => {
+//   try {
+//     const priceLength = 365
+//     const priceArray = []
+//     let totalVolume = 0
+//     for (let index = 0; index < priceLength; index++) {
+//       totalVolume = totalVolume + Number(prices[index].prices[0].volume)
+//       priceArray.push(Number(prices[index].prices[0].close))
+//     }
+//     return [
+//       Math.floor(totalVolume / priceLength),
+//       Math.min(...priceArray),
+//       Math.max(...priceArray)
+//     ]
+//   } catch (error) {
+//     console.log("error--", error);
+//   }
+// }
 
 // const generateData = async (stocksId: any) => {
 //   try {
@@ -2103,11 +2187,11 @@ startApolloServer()
 //     const priceArray = [];
 //     for (let index = 0; index <= 400; index++) {
 //       date = new Date(date.setDate(date.getDate() - 1));
-//       const open = (Math.random() * 1000).toFixed(2).toString();
-//       const close = (Math.random() * 1000).toFixed(2).toString();
-//       const high = (Math.random() * 1000).toFixed(2).toString();
-//       const low = (Math.random() * 1000).toFixed(2).toString();
-//       const volume = (Math.random() * 1000000).toFixed(0).toString();
+//       const open = Number((Math.random() * 1000).toFixed(2));
+//       const close = Number((Math.random() * 1000).toFixed(2));
+//       const high = Number((Math.random() * 1000).toFixed(2));
+//       const low = Number((Math.random() * 1000).toFixed(2));
+//       const volume = Number((Math.random() * 1000000).toFixed(0));
 //       // const shortDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 //       const shortDate = new Date(
 //         date.getFullYear(),
