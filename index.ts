@@ -189,13 +189,27 @@ const resolvers = {
       if (stockId) {
         where["id"] = stockId;
       }
-      return await context.prisma.stocks.findFirst({
+      const stockResult = await context.prisma.stocks.findFirst({
         where,
         include: {
           prices: true,
           stockInfo: true,
         },
       });
+
+      const priceJson: CustomObject = {};
+      stockResult.prices.forEach((priceElem: any) => {
+        priceJson[priceElem.prices[0].dateTime] = {
+          low: priceElem.prices[0].low,
+          high: priceElem.prices[0].high,
+          open: priceElem.prices[0].open,
+          close: priceElem.prices[0].close,
+          volume: priceElem.prices[0].volume,
+        };
+      });
+      stockResult.prices = priceJson;
+
+      return stockResult
     },
   },
 };
