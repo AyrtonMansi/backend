@@ -100,8 +100,8 @@ enum Sort {
 }
 
 enum BookMarkStatus {
-  Favorite
-  UnFavorite
+  Add
+  Remove
 }
 
 enum Chart_TimeFrame{
@@ -238,7 +238,7 @@ const resolvers = {
         }
       })
       const bookmarkData = fetchUserData.bookmarks || []
-      if (status === 'Favorite') {
+      if (status === 'Add') {
         if (bookmarkData.includes(stockId)) {
           return fetchUserData
         } else {
