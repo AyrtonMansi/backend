@@ -15,6 +15,7 @@ scalar JSON
 type Query {
   stocks(filter: FilterStocks, search: String, skip: Int, take: Int,orderBy: StocksOrderBy): Stock!
   stockInfoQuery(symbol: String, stockId: Int):Stocks!
+  userQuery(userId: Int!): User!
   price: [Price!]!
   chart_timeframe: Chart_TimeFrame
   tech_timeframe: Tech_TimeFrame
@@ -225,6 +226,14 @@ const resolvers = {
 
       return stockResult
     },
+    userQuery: async (parent: any, args: any, context: any) => {
+      const { userId } = args
+      return context.prisma.user.findUnique({
+        where: {
+          id: userId
+        }
+      })
+    }
   },
   Mutation: {
     bookmark: async (root: any, args: any, context: any) => {
