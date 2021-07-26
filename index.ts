@@ -20,6 +20,10 @@ type Query {
   tech_timeframe: Tech_TimeFrame
 }
 
+type Mutation {
+  bookmark(userId: Int!, stockId: Int!, status: BookMarkStatus!): User!
+}
+
 type Stock {
   stocks: [Stocks!]!
   count: Int!
@@ -64,6 +68,11 @@ type Price {
   date: String
 }
 
+type User {
+  id:Int
+  bookmarks: JSON
+}
+
 input StocksOrderBy {
   PE_ratio: Sort
   dividend: Sort
@@ -88,6 +97,11 @@ input Filter {
 enum Sort {
   asc
   desc
+}
+
+enum BookMarkStatus {
+  Favorite
+  UnFavorite
 }
 
 enum Chart_TimeFrame{
@@ -212,6 +226,43 @@ const resolvers = {
       return stockResult
     },
   },
+  Mutation: {
+    bookmark: async (root: any, args: any, context: any) => {
+      const { userId, stockId, status } = args
+      if (!userId || !stockId || !status) {
+        return {}
+      }
+      const fetchUserData = await context.prisma.user.findUnique({
+        where: {
+          id: userId
+        }
+      })
+      const bookmarkData = fetchUserData.bookmarks || []
+      if (status === 'Favorite') {
+        if (bookmarkData.includes(stockId)) {
+          return fetchUserData
+        } else {
+          bookmarkData.push(stockId)
+        }
+      } else {
+        const indexOfStock = bookmarkData.indexOf(stockId)
+        if (indexOfStock > -1) {
+          bookmarkData.splice(indexOfStock, 1)
+        } else {
+          return fetchUserData
+        }
+      }
+      const updatedUser = await context.prisma.user.update({
+        where: {
+          id: userId
+        },
+        data: {
+          bookmarks: bookmarkData
+        }
+      })
+      return updatedUser
+    }
+  }
 };
 
 const startApolloServer = async () => {

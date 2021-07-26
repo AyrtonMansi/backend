@@ -52,6 +52,11 @@ model StockInfo {
   @@unique([stocksId])
 }
 
+model User {
+  id        Int  @id @default(autoincrement())
+  bookmarks Json
+}
+
 enum graph_timeframe {
   Day
   Week
