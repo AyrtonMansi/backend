@@ -84,6 +84,7 @@ input StocksOrderBy {
   wk_change: Sort
   market_cap: Sort
   ave_volume: Sort
+  day_vol: Sort
 }
 
 input FilterStocks {
