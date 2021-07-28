@@ -20,7 +20,7 @@ model Stocks {
   symbol         String
   companyName    String
   day_change     Float
-  wk_change      String
+  wk_change      Float
   market_cap     Float
   day_vol        Int
   supply         Float
